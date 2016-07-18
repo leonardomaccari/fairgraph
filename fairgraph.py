@@ -2,7 +2,10 @@
 this module was not intended to be super-optimized. I preferred to have
 clearness and easiness to read, which leads to do copies of data-structures and
 some repeated operations could be avoided. I used it for graphs up to 150
-nodes, but on decent hardware it should scale to hundreds."""
+nodes, but on decent hardware it should scale to hundreds.
+
+Copyright 2016 Leonardo Maccari, leonardo.maccari@unitn.it
+Released under the terms of the GPLv3 License"""
 
 import networkx as nx
 import csv
@@ -105,8 +108,10 @@ class FairGraph(object):
         """ reassign a node, and check if the reassignment still respects the
         treshold, else undo and return False """
         current_nodes = list(zip(*self.owner_nodes[person])[0])
+        leaf_nodes = [x for x in current_nodes
+                      if len(nx.neighbors(self.g, x)) == 1]
         if self.mc_size_nodes(current_nodes + [node]) >\
-                self.treshold:
+                (self.treshold - len(leaf_nodes)):
             current_owner = self.g.node[node]['email']
             self.g.node[node]['email'] = person
             full_data_node = [f for f in self.owner_nodes[current_owner]
@@ -157,6 +162,15 @@ class FairGraph(object):
                 min_fragility = len(mcs)
                 most_fragile_node = node
         return most_fragile_node, min_fragility
+
+    def plot_robustness(self):
+        """ plot the distribution of the robustness of each person """
+        
+        print "#Owner".ljust(30), ", Fragility".ljust(5)
+        for owner, nodes in sorted(self.owner_nodes.items(),
+                                   key=lambda(x): -len(x[1])):
+            bare_nodes = zip(*nodes)[0]
+            print owner.ljust(30), ",", self.mc_size_nodes(bare_nodes)
 
     def redistribute_top_owner(self):
         """ do the whole reassigning process of nodes from the top owner"""
