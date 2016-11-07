@@ -151,17 +151,17 @@ class FairGraph(object):
         weight_list = [float(w)/s for w in weight_list]
         return np.random.choice(friend_list, 1, weight_list)[0]
 
-    def get_minimum_fragility(self):
-        min_fragility = len(self.g)
+    def get_minimum_robustness(self):
+        min_robustness = len(self.g)
         most_fragile_node = None
         for node in self.g.nodes():
             new_graph = self.g.copy()
             new_graph.remove_node(node)
             mcs = nx.connected_components(new_graph)[0]
-            if len(mcs) < min_fragility:
-                min_fragility = len(mcs)
+            if len(mcs) < min_robustness:
+                min_robustness = len(mcs)
                 most_fragile_node = node
-        return most_fragile_node, min_fragility
+        return most_fragile_node, min_robustness
 
     def plot_robustness(self):
         """ plot the distribution of the robustness of each person """
@@ -177,13 +177,13 @@ class FairGraph(object):
         self.backup_data()
         R_o = self.compute_owners_ranking()
         R_n = self.compute_nodes_ranking()
-        most_fragile_node, min_fragility = R_n[0]
-        self.treshold = min(self.treshold, min_fragility)
+        most_fragile_node, min_robustness = R_n[0]
+        self.treshold = min(self.treshold, min_robustness)
         most_fragile_owner = R_o[0][0]
         if self.treshold < 0.1*len(self.g):
             print "Your network is wicked!"
             print "If you remove node", most_fragile_node
-            print "the main connected component size is", min_fragility
+            print "the main connected component size is", min_robustness
             print "cowardyly refusing to work on such contitions!"
             exit(1)
         if R_o[0][1] > self.treshold:
@@ -197,7 +197,7 @@ class FairGraph(object):
         while not exit_loop:
             print "======== Treshold set to", self.treshold
             print "Reassigning nodes from", most_fragile_owner,\
-                  "with fragility", R_o[0][1]
+                  "with robustness", R_o[0][1]
             self.restore_backup()
             reassigned_nodes = {}
             for node in [x for x in ranked_owned_nodes if x not in leaf_nodes]:
@@ -211,7 +211,7 @@ class FairGraph(object):
                         new_owned_nodes = set(ranked_owned_nodes) -\
                             set(reassigned_nodes.keys())
                         new_ranking = self.mc_size_nodes(new_owned_nodes)
-                        """ Note: the fragility of a person, may not change
+                        """ Note: the robustness of a person, may not change
                         when you reassign one node. In fact fagility ==
                         size of main connected component, the MCC may not
                         change upon removal of one node, becouse the other
@@ -223,7 +223,7 @@ class FairGraph(object):
                         if new_ranking > self.treshold - len(leaf_nodes):
                             exit_loop = True
                         else:
-                            print "person fragility", new_ranking,\
+                            print "person robustness", new_ranking,\
                                 "/", self.treshold, len(new_owned_nodes),\
                                 len(self.owner_nodes[most_fragile_owner])
                         break  # while loop
