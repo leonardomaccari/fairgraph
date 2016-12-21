@@ -148,8 +148,9 @@ class FairGraph(object):
         if not friend_list:
             return None
         s = sum(weight_list)
-        weight_list = [float(w)/s for w in weight_list]
-        return np.random.choice(friend_list, 1, weight_list)[0]
+        weight_list = [s/float(w) for w in weight_list]
+        return np.random.choice(friend_list, 1,
+                [x/sum(weight_list) for x in weight_list])[0]
 
     def get_minimum_robustness(self):
         min_robustness = len(self.g)
